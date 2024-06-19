@@ -5,8 +5,8 @@ clear;
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('k12.txt');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('ldpc_matrix.alist');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N15_K7_M8.txt');
-[N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
-% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
+% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
+[N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
 % [N_bf, M_bf, maxVNd_bf, maxCNd_bf, VNd_bf, CNd_bf, VNlink_bf, CNlink_bf, H_bf] = f_readPCM_2024b('N15_K7_M15.txt');
 K = N-M;
 % Generator matrix
@@ -46,6 +46,7 @@ wbf_bler(:,:)=-1;
 total_codeword_num = zeros(size(EbN0dB));
 alpha=0.01
 theta = -0.5; % Initial threshold
+theta_increment=0.1
 
 %%
 % allmsgs_dec = [0:2^K-1];
@@ -103,6 +104,7 @@ for idx=1:length(EbN0dB)
         guess_rx=sign(Rx_wbf);
         mode_flag = 0; % Start in multi-bit mode
         
+        prev_flip_position=0
 
 
         for i=1:I_max
@@ -118,7 +120,7 @@ for idx=1:length(EbN0dB)
             fprintf('  Objective function value: %.4f\n', obj_function_value);
             fprintf('  Correlation term: %.4f\n', correlation_term);
             fprintf('  Parity term: %.4f\n', parity_term);
-
+            
 
 
             if sum(Syn_wbf)>0
@@ -135,7 +137,7 @@ for idx=1:length(EbN0dB)
                     %         fprintf('    Bit %d flipped to %d\n', k, decoded(k));
                     %     end
                     % end
-                    inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx))
+                    inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx));
                     
                     below_thr=-(inv_vect<theta);
                     below_thr(below_thr==0)=1;
@@ -157,8 +159,8 @@ for idx=1:length(EbN0dB)
                     inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx));
                     [min_val,min_idx]=min(inv_vect);
                     
-                    guess_rx(min_idx) = -guess_rx(min_idx);
-                    fprintf('    Bit %d flipped to %d\n', min_idx, guess_rx(min_idx));
+                    % guess_rx(min_idx) = -guess_rx(min_idx);
+                    
 
                     % % check if better
                     % new_obj_function_value = compute_objective_function(guess_rx, Rx_wbf, H);
@@ -167,6 +169,43 @@ for idx=1:length(EbN0dB)
                     %     mode_flag = 1; % Switch to single-bit mode
                     %     fprintf('  Switching to single-bit mode.\n');
                     % end
+                    
+                    % Check for oscillation
+                    if min_idx == prev_flip_position
+                        oscillation_count = oscillation_count + 1;
+                    else
+                        oscillation_count = 0;
+                        step_size=1;
+                    end
+                    
+                    % Escape mechanism
+                    if oscillation_count > 2  % Adjust this threshold based on empirical observations
+                        % theta = theta + theta_increment;
+                        step_size = step_size + 1;
+                        [~, sorted_indices] = sort(guess_rx);
+                        flip_positions = sorted_indices(1:step_size);
+                        % flip_positions = find(inv_vect < theta);
+                        % if isempty(flip_positions)
+                        %     flip_positions = min_idx;  % Ensure at least one bit is flipped
+                        % end
+                        oscillation_count = 0;  % Reset oscillation counter after escape attempt
+                    else
+                        flip_positions = min_idx;
+                    end
+                    
+                    
+                    % Flip the selected bits
+                    flip_positions
+                    guess_rx(flip_positions) = -guess_rx(flip_positions);
+                    for z = 1:length(flip_positions)
+                        fprintf('    Bit %d flipped to %d\n', flip_positions(z), guess_rx(flip_positions(z)));
+                    end
+                    
+                    % Track the previous flip position
+                    prev_flip_position = flip_positions;
+
+
+
                     
                     res_wbf_tmp=guess_rx;
                 end
