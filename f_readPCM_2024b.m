@@ -1,7 +1,8 @@
 function [n,m,maxVNd,maxCNd,VNd, CNd, VNlink, CNlink, PCM, PCMsparse] = f_readPCM_2024b(fname)
 % reads binary parity check matrix in "alist" format from file FNAME and
 % converts it to sparse matrix used in MATLAB routines.
-% This is an interface to matrices at http://wol.ra.phy.cam.ac.uk/mackay/codes/
+% This is an interface to matrices at 
+
 
 % Copyright (c) 1999 by Igor Kozintsev igor@ifp.uiuc.edu
 % $Revision: 1.1 $ $Date: 2000/03/23 $ Bug fixed by Hatim Behairy
@@ -37,6 +38,8 @@ for i=1:m
             
             position(j,i) = tmp; 
             CNlink(i,j)=position(j,i);
+            
+            
             PCM(i,CNlink(i,j)) = 1;
         end
     end

@@ -5,11 +5,13 @@ clear;
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N15_K7_M8.txt');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
 [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
+% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('k12.txt');
+% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('ldpc_matrix.alist');
 % [N_bf, M_bf, maxVNd_bf, maxCNd_bf, VNd_bf, CNd_bf, VNlink_bf, CNlink_bf, H_bf] = f_readPCM_2024b('N15_K7_M15.txt');
 K = N-M;
 % Generator matrix
 % (15,7)
-Ht=H'
+Ht=H';
 G_1=[1 0 0 0 1 0 1 1 1 0 0 0 0 0 0;
    1 1 0 0 1 1 1 0 0 1 0 0 0 0 0;
    0 1 1 0 0 1 1 1 0 0 1 0 0 0 0;
@@ -17,10 +19,10 @@ G_1=[1 0 0 0 1 0 1 1 1 0 0 0 0 0 0;
    0 1 0 1 1 1 0 0 0 0 0 0 1 0 0;
    0 0 1 0 1 1 1 0 0 0 0 0 0 1 0;
    0 0 0 1 0 1 1 1 0 0 0 0 0 0 1]
-G=transformHtoG(H)
+G=transformHtoG(H);
 % Coderate
 R = K/N; 
-I_lim=(1:2:50)
+I_lim=(2:2:100)
 I_max=max(I_lim)
 
 %%
@@ -41,7 +43,7 @@ wbf_bler = zeros(size(EbN0dB,2),size(I_lim,2));
 wbf_bler(:,:)=-1;
 
 total_codeword_num = zeros(size(EbN0dB));
-alpha=0.01
+alpha=0.1
 
 %%
 % allmsgs_dec = [0:2^K-1];
@@ -170,11 +172,11 @@ for idx=1:length(EbN0dB)
                 % fprintf("Got %d",res_wbf)
                 % wbf_codeword_error_num(idx,col)
                 res_wbf_tmp=guess_rx_wbf;
-                wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
+                wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp)
                 
                 if wbf_Num_error_bit_temp > 0
-                    for col=find(I_lim>=i)
-                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp;
+                    parfor col=find(I_lim>=i)
+                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp
                         wbf_bler(idx,col) = wbf_bler(idx,col) + 1;
                     end
                 end
@@ -222,8 +224,8 @@ hold on;
 hold on;
     % semilogy(EbN0dB,hard_FER_sim,'-*','color',[0.2,0.2,0.8],'DisplayName','BLER (Hard Decision)');
 
-for i=1:size(I_lim,2)
-    colour=hsv2rgb([i/size(I_lim,2),1,0.8])
+for i=1:numel(I_lim)
+    colour=hsv2rgb([i/size(I_lim,2)*0.7,1,0.8])
     % hold on;
         % semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
@@ -253,6 +255,9 @@ function G = transformHtoG(H)
     % Get dimensions of H
     [m, n] = size(H)
     r=n-m
+
+    rank(H)
+    m
 
     
     % Perform Gaussian elimination to get H into systematic form [I | B]
@@ -287,12 +292,13 @@ function G = transformHtoG(H)
         if H_systematic(i, i) == 1
             for j = 1:i-1
                 if H_systematic(j, i) == 1
-                    H_systematic(j, :) = mod(H_systematic(j, :) + H_systematic(i, :), 2);
+                    H_systematic(j, :) = mod(H_systematic(j, :)+ H_systematic(i, :),2);
                 end
             end
         end
     end
-    
+    H_systematic(:, m+1:end)'
+    H_systematic
     % Extract P matrix
     G = [H_systematic(:, m+1:end)' eye(r)]
 end
