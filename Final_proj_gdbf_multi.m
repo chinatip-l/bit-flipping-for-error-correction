@@ -23,7 +23,7 @@ G=transformHtoG(H);
 % b=[ binary_null_space(H) eye(K)]
 % Coderate
 R = K/N; 
-I_lim=(2:2:100)
+I_lim=(2:2:50)
 I_max=max(I_lim)
 
 %%
@@ -44,8 +44,8 @@ wbf_bler = zeros(size(EbN0dB,2),size(I_lim,2));
 wbf_bler(:,:)=-1;
 
 total_codeword_num = zeros(size(EbN0dB));
-alpha=0.01
-theta = -0.5; % Initial threshold
+% alpha=0.01
+theta = -1; % Initial threshold
 
 %%
 % allmsgs_dec = [0:2^K-1];
@@ -64,10 +64,11 @@ for idx=1:length(EbN0dB)
         total_codeword_num(idx) = total_codeword_num(idx) + 1;
         % r=wbf_codeword_error_num(idx,:)
         % K-bit source data generation
-        Tx_data = randi([0 1],1,K); 
+        % Tx_data = randi([0 1],1,K); 
 
         % Encoding
-        Tx_codeword = mod(Tx_data * G,2); 
+        % Tx_codeword = mod(Tx_data * G,2); 
+        Tx_codeword = zeros(1,N); 
 
         % BPSK modulation
         Tx_codeword_BPSK = 1 - 2 * Tx_codeword; 
@@ -160,13 +161,6 @@ for idx=1:length(EbN0dB)
                     guess_rx(min_idx) = -guess_rx(min_idx);
                     fprintf('    Bit %d flipped to %d\n', min_idx, guess_rx(min_idx));
 
-                    % % check if better
-                    % new_obj_function_value = compute_objective_function(guess_rx, Rx_wbf, H);
-                    % fprintf('  New objective function value: %.4f\n', new_obj_function_value);
-                    % if obj_function_value >= new_obj_function_value && i>1
-                    %     mode_flag = 1; % Switch to single-bit mode
-                    %     fprintf('  Switching to single-bit mode.\n');
-                    % end
                     
                     res_wbf_tmp=guess_rx;
                 end
@@ -234,6 +228,10 @@ uncodedSNR_EbN0 = 10.^(uncodedSNR_EbN0dB/10);
 BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
+dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
+name=sprintf('res_mat_gdbf_multi_N%dK%d_theta_%.2f.mat',N,K,theta)
+save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
+%%
 figure;
     semilogy(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');
     % plot(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');
@@ -248,17 +246,17 @@ for i=1:size(I_lim,2)
     % hold on;
         % semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
-        semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
+        semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER I=' num2str(I_lim(i))]);
         % plot(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
-        semilogy(EbN0dB,WBF_FER_sim(:,i),'--*','color',colour,'DisplayName',['BLER (WBF Algo) I=' num2str(I_lim(i))]);
+        semilogy(EbN0dB,WBF_FER_sim(:,i),'--*','color',colour,'DisplayName',['BLER I=' num2str(I_lim(i))]);
         % plot(EbN0dB,WBF_FER_sim(:,i),'-*','color',colour,'DisplayName',['BLER (WBF Algo) I=' num2str(I_lim(i))]);
 
 end
 
 hold off;
 legend;
-title(['Error-Rate Performance of (' num2str(N) ',' num2str(K) ') GDBF Code; AWGN Channel']);
+title(['Error-Rate Performance of (' num2str(N) ',' num2str(K) ') GDBF Multiple Flip Code; AWGN Channel']);
 xlabel('Eb/N0 (dB)');
 ylabel('Error Rates');
 
@@ -363,51 +361,4 @@ end
 function is_valid = check_parity(decoded, H)
     % Check if all parity-check equations are satisfied
     is_valid = all(arrayfun(@(i) prod(decoded(H(i, :) == 1)) == 1, 1:size(H, 1)));
-end
-
-function B = binary_null_space(H)
-    % Ensure the matrix H is binary (mod 2)
-    H = mod(H, 2);
-    
-    % Perform Gaussian elimination modulo 2
-    [rows, cols] = size(H);
-    augmented_matrix = [H eye(rows)]; % Augment with identity matrix
-
-    % Gaussian elimination
-    for i = 1:rows
-        % Find pivot
-        for j = i:rows
-            if augmented_matrix(j, i) == 1
-                % Swap rows
-                temp = augmented_matrix(i, :);
-                augmented_matrix(i, :) = augmented_matrix(j, :);
-                augmented_matrix(j, :) = temp;
-                break;
-            end
-        end
-        
-        % Make all rows below this one 0 in the current column
-        for k = i+1:rows
-            if augmented_matrix(k, i) == 1
-                augmented_matrix(k, :) = mod(augmented_matrix(k, :) + augmented_matrix(i, :), 2);
-            end
-        end
-    end
-
-    % Back substitution to reduce to row echelon form
-    for i = rows:-1:1
-        % Make all rows above this one 0 in the current column
-        for k = i-1:-1:1
-            if augmented_matrix(k, i) == 1
-                augmented_matrix(k, :) = mod(augmented_matrix(k, :) + augmented_matrix(i, :), 2);
-            end
-        end
-    end
-
-    % Extract the null space basis vectors
-    B = augmented_matrix(:, cols+1:end);
-
-    % Display result
-    disp('The null space basis vectors in binary form are:');
-    disp(B);
 end

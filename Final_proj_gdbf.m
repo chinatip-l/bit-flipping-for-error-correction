@@ -5,8 +5,8 @@ clear;
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('k12.txt');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('ldpc_matrix.alist');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N15_K7_M8.txt');
-[N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
-% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
+% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
+[N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
 % [N_bf, M_bf, maxVNd_bf, maxCNd_bf, VNd_bf, CNd_bf, VNlink_bf, CNlink_bf, H_bf] = f_readPCM_2024b('N15_K7_M15.txt');
 K = N-M;
 % Generator matrix
@@ -23,7 +23,7 @@ G=transformHtoG(H);
 % b=[ binary_null_space(H) eye(K)]
 % Coderate
 R = K/N; 
-I_lim=(50:50:500)
+I_lim=(2:2:50)
 I_max=max(I_lim)
 
 %%
@@ -63,10 +63,11 @@ for idx=1:length(EbN0dB)
         total_codeword_num(idx) = total_codeword_num(idx) + 1;
         % r=wbf_codeword_error_num(idx,:)
         % K-bit source data generation
-        Tx_data = randi([0 1],1,K); 
+        % Tx_data = randi([0 1],1,K); 
 
         % Encoding
-        Tx_codeword = mod(Tx_data * G,2); 
+        % Tx_codeword = mod(Tx_data * G,2); 
+        Tx_codeword = zeros(1,N); 
 
         % BPSK modulation
         Tx_codeword_BPSK = 1 - 2 * Tx_codeword; 
@@ -111,8 +112,8 @@ for idx=1:length(EbN0dB)
             
             % Compute objective function
             [obj_function_value, correlation_term, parity_term] = compute_objective_function(guess_rx, Rx_wbf, H);
-            fprintf('  Objective function value: %.4f\n', obj_function_value);
-            fprintf('  Correlation term: %.4f\n', correlation_term);
+            % fprintf('  Objective function value: %.4f\n', obj_function_value);
+            % fprintf('  Correlation term: %.4f\n', correlation_term);
             fprintf('  Parity term: %.4f\n', parity_term);
 
 
@@ -122,7 +123,12 @@ for idx=1:length(EbN0dB)
                 % fprintf('  Single-bit mode:\n');
                 min_inversion_value = Inf;
                 flip_position = NaN;
-                inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx));
+                inv_vect=zeros(size(guess_rx));
+                parfor k=1:numel(guess_rx)
+                    inv_vect(k)=inversion_function(guess_rx,Rx_wbf,H,k);
+                end
+                % inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx));
+                % isequal(inv_vec,inv_vect)
                 [min_val,min_idx]=min(inv_vect);
                 % tmpvect=zeros(size(guess_rx))
                 % for k = 1:length(guess_rx)
@@ -148,7 +154,7 @@ for idx=1:length(EbN0dB)
                     res_wbf_tmp=guess_rx<0;
                     wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
                     if wbf_Num_error_bit_temp > 0
-                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp
+                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp;
                         wbf_bler(idx,col) = wbf_bler(idx,col) + 1;
                     end
                 end
@@ -157,12 +163,10 @@ for idx=1:length(EbN0dB)
                 % wbf_codeword_error_num(idx,col)
                 res_wbf_tmp=guess_rx<0;
                 fprintf("Got %d\n",i)
-                res_wbf_tmp
-                Tx_codeword
                 wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
                 if wbf_Num_error_bit_temp > 0
-                    for col=find(I_lim>=i)
-                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp;
+                    parfor col=find(I_lim>=i)
+                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp
                         wbf_bler(idx,col) = wbf_bler(idx,col) + 1;
                     end
                 end
@@ -201,6 +205,11 @@ uncodedSNR_EbN0 = 10.^(uncodedSNR_EbN0dB/10);
 BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
+dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
+name=sprintf('res_mat_gdbf_single_N%dK%d.mat',N,K)
+save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
+
+%%
 figure;
     semilogy(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');
     % plot(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');
@@ -215,17 +224,17 @@ for i=1:size(I_lim,2)
     % hold on;
         % semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
-        semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
+        semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER I=' num2str(I_lim(i))]);
         % plot(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
-        semilogy(EbN0dB,WBF_FER_sim(:,i),'--*','color',colour,'DisplayName',['BLER (WBF Algo) I=' num2str(I_lim(i))]);
+        semilogy(EbN0dB,WBF_FER_sim(:,i),'--*','color',colour,'DisplayName',['BLER I=' num2str(I_lim(i))]);
         % plot(EbN0dB,WBF_FER_sim(:,i),'-*','color',colour,'DisplayName',['BLER (WBF Algo) I=' num2str(I_lim(i))]);
 
 end
 
 hold off;
 legend;
-title(['Error-Rate Performance of (' num2str(N) ',' num2str(K) ') GDBF Code; AWGN Channel']);
+title(['Error-Rate Performance of (' num2str(N) ',' num2str(K) ') GDBF Single Flip Code; AWGN Channel']);
 xlabel('Eb/N0 (dB)');
 ylabel('Error Rates');
 
@@ -330,51 +339,4 @@ end
 function is_valid = check_parity(decoded, H)
     % Check if all parity-check equations are satisfied
     is_valid = all(arrayfun(@(i) prod(decoded(H(i, :) == 1)) == 1, 1:size(H, 1)));
-end
-
-function B = binary_null_space(H)
-    % Ensure the matrix H is binary (mod 2)
-    H = mod(H, 2);
-    
-    % Perform Gaussian elimination modulo 2
-    [rows, cols] = size(H);
-    augmented_matrix = [H eye(rows)]; % Augment with identity matrix
-
-    % Gaussian elimination
-    for i = 1:rows
-        % Find pivot
-        for j = i:rows
-            if augmented_matrix(j, i) == 1
-                % Swap rows
-                temp = augmented_matrix(i, :);
-                augmented_matrix(i, :) = augmented_matrix(j, :);
-                augmented_matrix(j, :) = temp;
-                break;
-            end
-        end
-        
-        % Make all rows below this one 0 in the current column
-        for k = i+1:rows
-            if augmented_matrix(k, i) == 1
-                augmented_matrix(k, :) = mod(augmented_matrix(k, :) + augmented_matrix(i, :), 2);
-            end
-        end
-    end
-
-    % Back substitution to reduce to row echelon form
-    for i = rows:-1:1
-        % Make all rows above this one 0 in the current column
-        for k = i-1:-1:1
-            if augmented_matrix(k, i) == 1
-                augmented_matrix(k, :) = mod(augmented_matrix(k, :) + augmented_matrix(i, :), 2);
-            end
-        end
-    end
-
-    % Extract the null space basis vectors
-    B = augmented_matrix(:, cols+1:end);
-
-    % Display result
-    disp('The null space basis vectors in binary form are:');
-    disp(B);
 end

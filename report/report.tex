@@ -1,0 +1,130 @@
+\documentclass[a4paper,conference]{IEEEtran}
+
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{algorithmic}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\def\BibTeX{{\text B\kern-.05em{\sc i\kern-.025em b}\kern-.08em\TeX}}
+
+\begin{document}
+
+\title{Improvements of Bit-Flipping Decoding for LDPC Codes}
+
+\author{\IEEEauthorblockN{Chinatip Lawansuk}
+\IEEEauthorblockA{\textit{Department of Electrical Engineering and Computer Science} \\
+\textit{National Taipei University of Technology}\\
+Taipei, Taiwan \\
+t112998405@ntut.edu.tw}
+}
+
+\maketitle
+
+\begin{abstract}
+This document is a template for preparing manuscripts for IEEE conference proceedings. Your abstract should be succinct and summarize the key points of your paper.
+\end{abstract}
+
+% \begin{IEEEkeywords}
+% keyword1, keyword2, keyword3, keyword4
+% \end{IEEEkeywords}
+
+\section{Introduction}
+Error control theory is a vital aspect of digital communication and information theory, aiming to ensure the integrity and reliability of data transmitted over noisy channels. In the presence of errors induced by noise or other forms of interference, robust error correction methods are essential for accurate data retrieval. Among the various strategies for error correction, the bit flipping algorithm has proven to be a fundamental approach, particularly in the realm of low-density parity-check (LDPC) codes. LDPC codes are renowned for their capacity to achieve near-optimal performance with manageable computational complexity.
+
+This report delves into advanced variants of the bit flipping algorithm, specifically focusing on the Improved Modified Weighted Bit Flipping (IMWBF) algorithm and the Gradient Descent Weighted Bit Flipping (GDWBF) algorithm. Both IMWBF and GDWBF represent significant advancements over the traditional weighted bit flipping (WBF) algorithm, offering enhanced performance in terms of error correction capability and convergence speed.
+
+The IMWBF algorithm introduces a refined weighting mechanism that adjusts the flipping criterion based on the reliability of received bits, leading to more accurate error correction. On the other hand, the GDWBF algorithm leverages gradient descent principles to optimize the bit flipping process, further improving the algorithm's efficiency and effectiveness.
+
+This report provides a comprehensive analysis of these advanced bit flipping algorithms, detailing their theoretical foundations, implementation strategies, and performance evaluation. By comparing IMWBF and GDWBF with traditional WBF, the report highlights the improvements and practical implications of these enhanced algorithms in modern error control systems. 
+
+\section{Algorithms}
+\subsection{Bit Flip}
+The Bit Flipping Algorithm is a simple iterative technique used in error correction, particularly with Low-Density Parity-Check (LDPC) codes. It works by iteratively updating the bits of a received message based on the parity-check equations defined by the code. The algorithm identifies bits that are most likely in error and flips them to minimize the number of unsatisfied parity-check equations. This process continues until all parity checks are satisfied or a predetermined number of iterations is reached.
+To select the position to be flipped, it needs to satisfied
+\[
+i_{\text{flip}} = \arg\max (\mathbf{S} \cdot \mathbf{H})
+\]
+where 
+
+\( S \) is Syndrome Vector
+
+\( H \) is Parity Check Matrix
+\subsection{Weighted Bit Flip}
+The Weighted Bit Flipping (WBF) algorithm is an enhanced version of the standard Bit Flipping algorithm used in error correction for decoding low-density parity-check (LDPC) codes. While the traditional Bit Flipping algorithm flips bits based purely on the number of unsatisfied parity checks they contribute to, the Weighted Bit Flipping algorithm incorporates additional information about the reliability of each bit in the decision-making process.
+
+For the additional information we used to help making decision, we use amplitude of input signal. Since it is bipolar across zero, the higher amplitude, the more reliable of that bit. 
+
+Hence, 
+\[
+i_{\text{flip}} = \arg\max ( ( \mathbf{S} \cdot \mathbf{H} ) \odot \mid y\mid  )
+\]
+where 
+
+\( S \) is Syndrome Vector
+
+\( H \) is Parity Check Matrix
+
+\( \mid y\mid  \) is Signal Magnitude Vector
+\subsection{Improved Modified Weighted Bit Flip (IMWBF)}
+This algorithm enhances the Modified Weighted Bit Flipping approach for decoding LDPC codes by refining the reliability computation of parity checks. It improves accuracy by excluding the least reliable bit from the calculation of check reliability, preventing biased reliability measures. The algorithm involves an initialization step where minimum absolute symbol values for each check are stored, followed by iterative decoding that flips the bit with the maximum value of a specially computed flipping function until all syndromes are satisfied or a maximum iteration count is reached. Despite adding preprocessing steps and slightly increased storage needs, the IMWBF maintains low computational complexity, making it efficient for systems needing fast and accurate decoding.
+
+
+\[
+i_{\text{flip}} = \arg\max ( ( \mathbf{S} \cdot \mathbf{H} ) \odot \mid y\mid  )
+\]
+where 
+
+\( S \) is Syndrome Vector
+
+\( H \) is Parity Check Matrix
+
+\( \mid y\mid  \) is Signal Magnitude Vector
+
+\subsection{Gradient Descent Bit Flip}
+Gradient Descent Bit Flipping (GDBF) algorithms for decoding LDPC codes utilize a simplified gradient descent method to improve decoding performance. The process involves minimizing an objective function that maximizes the correlation between received and valid codewords while penalizing invalid assignments. The inversion function, central to GDBF, guides which bits to flip by evaluating the change in the objective function, emulating a gradient descent approach. Decisions on bit flipping are based on the inversion function's values, with bits associated with the highest absolute value of the gradient being flipped, facilitating faster convergence compared to traditional bit-flipping methods.
+
+\[
+i_{\text{flip}} = \arg\max ( ( \mathbf{S} \cdot \mathbf{H} ) \odot \mid y\mid  )
+\]
+where 
+
+\( S \) is Syndrome Vector
+
+\( H \) is Parity Check Matrix
+
+\( \mid y\mid  \) is Signal Magnitude Vector
+\section{Implementation}
+Explain the methods and approaches you used in your research. Include any necessary equations, diagrams, or figures.
+\subsection{Bit Flip}
+\subsection{Weighted Bit Flip}
+\subsection{Improved Modified Weighted Bit Flip}
+\subsection{Gradient Descent Bit Flip}
+\subsubsection{Single Bit Flip}
+\subsubsection{Multiple Bit Flip}
+
+
+\section{Improvement}
+
+\subsection{Multiple Bit Flip with Oscillation Escape}
+
+
+\section{Results}
+Present the results of your research. Use tables, graphs, and figures to illustrate your findings.
+
+\section{Discussion}
+Discuss the implications of your results. Compare them with previous work and explain any differences or similarities.
+
+\section{Conclusion}
+Summarize the main findings of your paper and suggest possible directions for future research.
+
+\section*{Acknowledgments}
+Acknowledge any assistance or funding received during the research.
+
+\bibliographystyle{IEEEtran}
+\bibliography{yourbibfile}
+
+\end{document}

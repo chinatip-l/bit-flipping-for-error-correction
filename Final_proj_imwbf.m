@@ -22,7 +22,7 @@ G_1=[1 0 0 0 1 0 1 1 1 0 0 0 0 0 0;
 G=transformHtoG(H);
 % Coderate
 R = K/N; 
-I_lim=(2:2:100)
+I_lim=(2:2:50)
 I_max=max(I_lim)
 
 %%
@@ -43,7 +43,7 @@ wbf_bler = zeros(size(EbN0dB,2),size(I_lim,2));
 wbf_bler(:,:)=-1;
 
 total_codeword_num = zeros(size(EbN0dB));
-alpha=0.1
+alpha=0.01
 
 %%
 % allmsgs_dec = [0:2^K-1];
@@ -62,10 +62,11 @@ for idx=1:length(EbN0dB)
         total_codeword_num(idx) = total_codeword_num(idx) + 1;
         % r=wbf_codeword_error_num(idx,:)
         % K-bit source data generation
-        Tx_data = randi([0 1],1,K); 
+        % Tx_data = randi([0 1],1,K); 
 
         % Encoding
-        Tx_codeword = mod(Tx_data * G,2); 
+        % Tx_codeword = mod(Tx_data * G,2); 
+        Tx_codeword = zeros(1,N); 
 
         % BPSK modulation
         Tx_codeword_BPSK = 1 - 2 * Tx_codeword; 
@@ -215,6 +216,11 @@ uncodedSNR_EbN0 = 10.^(uncodedSNR_EbN0dB/10);
 BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
+dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
+name=sprintf('res_mat_imwbf_N%dK%d_alpha_%.2f.mat',N,K,alpha)
+save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
+
+%%
 figure;
     semilogy(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');
     % plot(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');
@@ -229,10 +235,10 @@ for i=1:numel(I_lim)
     % hold on;
         % semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
-        semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
+        semilogy(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER I=' num2str(I_lim(i))]);
         % plot(EbN0dB,WBF_BER_sim(:,i),'-o','color',colour,'DisplayName',['BER (WBF Algo) I=' num2str(I_lim(i))]);
     hold on;
-        semilogy(EbN0dB,WBF_FER_sim(:,i),'--*','color',colour,'DisplayName',['BLER (WBF Algo) I=' num2str(I_lim(i))]);
+        semilogy(EbN0dB,WBF_FER_sim(:,i),'--*','color',colour,'DisplayName',['BLER I=' num2str(I_lim(i))]);
         % plot(EbN0dB,WBF_FER_sim(:,i),'-*','color',colour,'DisplayName',['BLER (WBF Algo) I=' num2str(I_lim(i))]);
 
 end

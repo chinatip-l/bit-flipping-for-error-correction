@@ -62,10 +62,11 @@ for idx=1:length(EbN0dB)
         total_codeword_num(idx) = total_codeword_num(idx) + 1;
         % r=wbf_codeword_error_num(idx,:)
         % K-bit source data generation
-        Tx_data = randi([0 1],1,K); 
+        % Tx_data = randi([0 1],1,K); 
 
         % Encoding
-        Tx_codeword = mod(Tx_data * G,2); 
+        % Tx_codeword = mod(Tx_data * G,2); 
+        Tx_codeword = zeros(1,N); 
 
         % BPSK modulation
         Tx_codeword_BPSK = 1 - 2 * Tx_codeword; 
@@ -216,8 +217,8 @@ BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
 dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
-name=sprintf('res_mat_bf_N%dK%d_%s.mat',N,K,dt)
-save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB")
+name=sprintf('res_mat_bf_N%dK%d.mat',N,K)
+save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
 
 %%
 figure;
