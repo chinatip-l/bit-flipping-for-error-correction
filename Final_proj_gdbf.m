@@ -1,4 +1,4 @@
-clear;
+clear
 
 %%
 % Load PCM and related parameters
@@ -29,22 +29,21 @@ I_max=max(I_lim)
 %%
 EbN0dB = [0:1:7];
 sigma = sqrt(1./ (2*R*(10.^(EbN0dB/10))));
-minimum_codeword_error_num = 500;
-soft_minimum_codeword_error_num = 500;
+minimum_codeword_error_num = 50;
 
-coded_bit_error_num = zeros(size(EbN0dB));
-codeword_error_num = zeros(size(EbN0dB));
 
-hbf_coded_bit_error_num= zeros(size(EbN0dB));
-hbf_codeword_error_num = zeros(size(EbN0dB));
 
-wbf_ber= zeros(size(EbN0dB,2),size(I_lim,2));
-wbf_ber(:,:)=-1;
-wbf_bler = zeros(size(EbN0dB,2),size(I_lim,2));
-wbf_bler(:,:)=-1;
 
-total_codeword_num = zeros(size(EbN0dB));
-alpha=0.01
+if exist("wbf_ber_single","var") ~=1
+
+    wbf_ber_single= zeros(size(EbN0dB,2),size(I_lim,2));
+    wbf_ber_single(:,:)=-1;
+    wbf_bler_single= zeros(size(EbN0dB,2),size(I_lim,2));
+    wbf_bler_single(:,:)=-1;
+    total_codeword_num_single = zeros(size(EbN0dB));
+end
+
+% alpha=0.01
 
 %%
 % allmsgs_dec = [0:2^K-1];
@@ -59,8 +58,8 @@ alpha=0.01
 tic
 
 for idx=1:length(EbN0dB)
-    while any(wbf_ber(idx,:) < minimum_codeword_error_num)
-        total_codeword_num(idx) = total_codeword_num(idx) + 1;
+    while any(wbf_bler_single(idx,:) < minimum_codeword_error_num)
+        total_codeword_num_single(idx) = total_codeword_num_single(idx) + 1;
         % r=wbf_codeword_error_num(idx,:)
         % K-bit source data generation
         % Tx_data = randi([0 1],1,K); 
@@ -123,11 +122,13 @@ for idx=1:length(EbN0dB)
                 % fprintf('  Single-bit mode:\n');
                 min_inversion_value = Inf;
                 flip_position = NaN;
-                inv_vect=zeros(size(guess_rx));
-                parfor k=1:numel(guess_rx)
-                    inv_vect(k)=inversion_function(guess_rx,Rx_wbf,H,k);
-                end
-                % inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx));
+                % inv_vect=zeros(size(guess_rx));
+                % parfor k=1:numel(guess_rx)
+                %     inv_vect(k)=inversion_function(guess_rx,Rx_wbf,H,k);
+                % end
+
+                inv_vect=arrayfun(@(k) inversion_function(guess_rx,Rx_wbf,H,k),1:numel(guess_rx));
+                
                 % isequal(inv_vec,inv_vect)
                 [min_val,min_idx]=min(inv_vect);
                 % tmpvect=zeros(size(guess_rx))
@@ -154,8 +155,8 @@ for idx=1:length(EbN0dB)
                     res_wbf_tmp=guess_rx<0;
                     wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
                     if wbf_Num_error_bit_temp > 0
-                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp;
-                        wbf_bler(idx,col) = wbf_bler(idx,col) + 1;
+                        wbf_ber_single(idx,col) = wbf_ber_single(idx,col) + wbf_Num_error_bit_temp;
+                        wbf_bler_single(idx,col) = wbf_bler_single(idx,col) + 1;
                     end
                 end
             else
@@ -165,9 +166,9 @@ for idx=1:length(EbN0dB)
                 fprintf("Got %d\n",i)
                 wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
                 if wbf_Num_error_bit_temp > 0
-                    parfor col=find(I_lim>=i)
-                        wbf_ber(idx,col) = wbf_ber(idx,col) + wbf_Num_error_bit_temp
-                        wbf_bler(idx,col) = wbf_bler(idx,col) + 1;
+                    for col=find(I_lim>=i)
+                        wbf_ber_single(idx,col) = wbf_ber_single(idx,col) + wbf_Num_error_bit_temp
+                        wbf_bler_single(idx,col) = wbf_bler_single(idx,col) + 1;
                     end
                 end
                 break
@@ -196,8 +197,8 @@ toc
 % hard_FER_sim = coded_bit_error_num./(total_codeword_num); % FER is aka BLER
 
 % WBF_BER_sim = wbf_ber./repmat((total_codeword_num*N)',1,size(I_lim,2))
-WBF_BER_sim = wbf_ber./repmat((total_codeword_num*N)',1,size(I_lim,2))
-WBF_FER_sim = wbf_bler./repmat((total_codeword_num)',1,size(I_lim,2)) % FER is aka BLER
+WBF_BER_sim = wbf_ber_single./repmat((total_codeword_num_single*N)',1,size(I_lim,2))
+WBF_FER_sim = wbf_bler_single./repmat((total_codeword_num_single)',1,size(I_lim,2)) % FER is aka BLER
 
 %% BER of uncoded BPSK for comparison
 uncodedSNR_EbN0dB = EbN0dB;
@@ -206,8 +207,8 @@ BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
 dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
-name=sprintf('res_mat_gdbf_single_N%dK%d.mat',N,K)
-save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
+name=sprintf('gdbf_single_N%dK%d.mat',N,K)
+save(name, "WBF_FER_sim", "WBF_BER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
 
 %%
 figure;
