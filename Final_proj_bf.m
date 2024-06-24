@@ -217,8 +217,8 @@ BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
 dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
-name=sprintf('res_mat_bf_N%dK%d.mat',N,K)
-save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
+name=sprintf('bf_N%dK%d.mat',N,K)
+save(name, "WBF_FER_sim", "WBF_BER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
 
 %%
 figure;

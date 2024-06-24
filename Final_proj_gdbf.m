@@ -5,8 +5,8 @@ clear
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('k12.txt');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('ldpc_matrix.alist');
 % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N15_K7_M8.txt');
-% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
-[N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
+[N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
+% [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
 % [N_bf, M_bf, maxVNd_bf, maxCNd_bf, VNd_bf, CNd_bf, VNlink_bf, CNlink_bf, H_bf] = f_readPCM_2024b('N15_K7_M15.txt');
 K = N-M;
 % Generator matrix
@@ -107,13 +107,13 @@ for idx=1:length(EbN0dB)
           
             Syn_wbf = mod((guess_rx<0)*H.',2);
 
-            fprintf('Iteration %d:\n', i);
+            % fprintf('Iteration %d:\n', i);
             
             % Compute objective function
             [obj_function_value, correlation_term, parity_term] = compute_objective_function(guess_rx, Rx_wbf, H);
             % fprintf('  Objective function value: %.4f\n', obj_function_value);
             % fprintf('  Correlation term: %.4f\n', correlation_term);
-            fprintf('  Parity term: %.4f\n', parity_term);
+            % fprintf('  Parity term: %.4f\n', parity_term);
 
 
 
@@ -142,7 +142,7 @@ for idx=1:length(EbN0dB)
                 %     end
                 % end
                 guess_rx(min_idx) = -guess_rx(min_idx);
-                fprintf('    Bit %d flipped to %d\n', min_idx, guess_rx(min_idx));
+                % fprintf('    Bit %d flipped to %d\n', min_idx, guess_rx(min_idx));
                 
                 res_wbf_tmp=guess_rx;
                 
@@ -156,19 +156,19 @@ for idx=1:length(EbN0dB)
                     wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
                     if wbf_Num_error_bit_temp > 0
                         wbf_ber_single(idx,col) = wbf_ber_single(idx,col) + wbf_Num_error_bit_temp;
-                        wbf_bler_single(idx,col) = wbf_bler_single(idx,col) + 1;
+                        wbf_bler_single(idx,col) = wbf_bler_single(idx,col) + 1
                     end
                 end
             else
                 
                 % wbf_codeword_error_num(idx,col)
                 res_wbf_tmp=guess_rx<0;
-                fprintf("Got %d\n",i)
+                % fprintf("Got %d\n",i);
                 wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
                 if wbf_Num_error_bit_temp > 0
                     for col=find(I_lim>=i)
-                        wbf_ber_single(idx,col) = wbf_ber_single(idx,col) + wbf_Num_error_bit_temp
-                        wbf_bler_single(idx,col) = wbf_bler_single(idx,col) + 1;
+                        wbf_ber_single(idx,col) = wbf_ber_single(idx,col) + wbf_Num_error_bit_temp;
+                        wbf_bler_single(idx,col) = wbf_bler_single(idx,col) + 1
                     end
                 end
                 break

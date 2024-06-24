@@ -6,7 +6,7 @@ for theta=0:-0.1:-1.5
     % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('ldpc_matrix.alist');
     % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N15_K7_M8.txt');
     % [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N96_K48_M48.txt');
-    [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txtWBF_BER_sim');
+    [N, M, maxVNd, maxCNd, VNd, CNd, VNlink, CNlink, H] = f_readPCM_2024b('N504_K252_M252.txt');
     % [N_bf, M_bf, maxVNd_bf, maxCNd_bf, VNd_bf, CNd_bf, VNlink_bf, CNlink_bf, H_bf] = f_readPCM_2024b('N15_K7_M15.txt');
     K = N-M;
     % Generator matrix
@@ -234,7 +234,7 @@ for theta=0:-0.1:-1.5
     %%
     dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
     name=sprintf('gdbf_multi_N%dK%d_theta_%.2f.mat',N,K,theta)
-    save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim","theta")
+    save(name, "WBF_FER_sim", "WBF_BER_sim", "BPSK_BER_ana", "EbN0dB","I_lim","theta")
     %%
     figure;
         semilogy(EbN0dB,BPSK_BER_ana,'-','color',[0.2,0.2,0.2],'DisplayName','Uncoded BPSK BER');

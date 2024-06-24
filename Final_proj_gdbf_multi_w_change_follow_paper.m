@@ -29,7 +29,7 @@ for theta1=0:-0.1:-1.5
     %%
     EbN0dB = [0:1:7];
     sigma = sqrt(1./ (2*R*(10.^(EbN0dB/10))));
-    minimum_codeword_error_num = 20;
+    minimum_codeword_error_num = 50;
     soft_minimum_codeword_error_num = 500;
 
 
@@ -119,13 +119,13 @@ for theta1=0:-0.1:-1.5
 
                 Syn_wbf = mod((guess_rx<0)*H.',2);
 
-                fprintf('Iteration %d:\n', i);
+                % fprintf('Iteration %d:\n', i);
 
                 % Compute objective function
                 [obj_function_value, correlation_term, parity_term] = compute_objective_function(guess_rx, Rx_wbf, H);
                 % fprintf('  Objective function value: %.4f\n', obj_function_value);
                 % fprintf('  Correlation term: %.4f\n', correlation_term);
-                fprintf('  Parity term: %.4f\n', parity_term);
+                % fprintf('  Parity term: %.4f\n', parity_term);
 
 
 
@@ -134,7 +134,7 @@ for theta1=0:-0.1:-1.5
 
                     if mode_flag == 0
                         % Multi-bit mode
-                        fprintf('  Multi-bit mode:\n');
+                        % fprintf('  Multi-bit mode:\n');
                         % for k = 1:length(decoded)
                         %     inv_value = inversion_function(decoded, received, H, k);
                         %     fprintf('    Inversion function value for bit %d: %.4f\n', k, inv_value);
@@ -166,7 +166,7 @@ for theta1=0:-0.1:-1.5
 
 
                         new_obj_function_value = compute_objective_function(guess_rx, Rx_wbf, H);
-                        fprintf('  New objective function value: %.4f\n', new_obj_function_value);
+                        % fprintf('  New objective function value: %.4f\n', new_obj_function_value);
                         if obj_function_value >= new_obj_function_value && i>1
                             mode_flag = 1; % Switch to single-bit mode
                             fprintf('  Switching to single-bit mode.\n');
@@ -212,8 +212,8 @@ for theta1=0:-0.1:-1.5
                             % flip_positions = sorted_indices(1:step_size);
 
                             % prepare to switch
-                            theta=theta2
-                            mode=0
+                            theta=theta2;
+                            mode=0;
                             oscillation_count = 0;  % Reset oscillation counter after escape attempt
                         else
                             flip_positions = min_idx;
@@ -221,7 +221,7 @@ for theta1=0:-0.1:-1.5
 
 
                         % Flip the selected bits
-                        flip_positions
+                        flip_positions;
                         guess_rx(flip_positions) = -guess_rx(flip_positions);
                         % for z = 1:length(flip_positions)
                         %     fprintf('    Bit %d flipped to %d\n', flip_positions(z), guess_rx(flip_positions(z)));
@@ -253,7 +253,7 @@ for theta1=0:-0.1:-1.5
 
                     % wbf_codeword_error_num(idx,col)
                     res_wbf_tmp=guess_rx<0;
-                    fprintf("Got %d\n",i)
+                    fprintf("Got %d\n",i);
                     % res_wbf_tmp
                     % Tx_codeword
                     wbf_Num_error_bit_temp = sum(Tx_codeword ~= res_wbf_tmp);
@@ -299,7 +299,7 @@ for theta1=0:-0.1:-1.5
 
     %%
     dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
-    name=sprintf('gdbf_multi_escape_paper_N%dK%d_theta1_%.2f.mat',N,K,theta1)
+    name=sprintf('gdbf_multi_escape_paper_N%dK%d_theta_%.2f.mat',N,K,theta1)
     save(name, "WBF_FER_sim", "WBF_BER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
 
     %%

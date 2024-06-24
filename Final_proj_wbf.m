@@ -58,7 +58,7 @@ total_codeword_num = zeros(size(EbN0dB));
 tic
 
 for idx=1:length(EbN0dB)
-    while any(wbf_ber(idx,:) < minimum_codeword_error_num)
+    while any(wbf_bler(idx,:) < minimum_codeword_error_num)
         total_codeword_num(idx) = total_codeword_num(idx) + 1;
         % r=wbf_codeword_error_num(idx,:)
         % K-bit source data generation
@@ -217,8 +217,8 @@ BPSK_BER_ana = 0.5*erfc(sqrt(uncodedSNR_EbN0)) ;
 
 %%
 dt=datetime('now','TimeZone','local','Format','dd-MM-yyy_HH-mm-ss')
-name=sprintf('res_mat_wbf_N%dK%d.mat',N,K)
-save(name, "WBF_FER_sim", "WBF_FER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
+name=sprintf('wbf_N%dK%d.mat',N,K)
+save(name, "WBF_FER_sim", "WBF_BER_sim", "BPSK_BER_ana", "EbN0dB","I_lim")
 
 %%
 figure;
